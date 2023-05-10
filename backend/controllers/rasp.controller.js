@@ -10,13 +10,13 @@ class RaspController {
     const rasps = await db.query('SELECT * FROM rasp;')
     res.json(rasps.rows)
   }
-  /*async getOneRasp (req, res) {
-    const id = req.query.id
+  async getOneRasp (req, res) {
+    const id = req.params.id
     const rasp = await db.query('SELECT * FROM rasp WHERE id = $1', [id])
     res.json(rasp.rows[0])
-  }*/
+  }
   async deleteRasp (req, res) {
-    const id = req.query.id
+    const id = req.params.id
     const rasp = await db.query('DELETE FROM rasp WHERE id = $1', [id])
     res.json(rasp.rows[0])
   }

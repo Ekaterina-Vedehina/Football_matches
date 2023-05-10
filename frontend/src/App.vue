@@ -2,7 +2,7 @@
   <div class="d-flex">
     <img src="../football_icon.png" alt="" width="32"  height="32">
     <nav>
-      <router-link to="/">Home</router-link>
+      <router-link to="/">Главная</router-link>
       <router-link to="/teams">Команды</router-link>
       <router-link to="/rasp">Расписание матчей</router-link>
       <router-link to="/archive">Архив матчей</router-link>

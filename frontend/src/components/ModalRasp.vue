@@ -1,5 +1,6 @@
 <script>
 import DatePicker from './DatePicker.vue';
+import { formatISO } from 'date-fns'
 export default {
   components: {
     DatePicker
@@ -9,14 +10,12 @@ export default {
       type: Boolean,
       required: true
     },
-    modelValue:{
-      type: String,
-      required: true
-    },
+    // для заголовка модального окна
     headerModal: {
       type: String,
       required: true
     },
+    // для определения функции окна (Создать / Редактировать)
     action: {
       type: String,
       required: true
@@ -26,10 +25,11 @@ export default {
       required: true
     }
   },
-  data () {
+  data() {
     return {
       //arrayTeams: [],
       date: '',
+      lastconfirmdate:'',
       team_one: '',
       team_two: '',
     }
@@ -41,9 +41,20 @@ export default {
     AddData() {
       this.$emit('confirm')
     },
-    updateData(){
+    updateData() {
       this.$emit('update')
-    }
+    },
+    GetDateFromDatepicker() {
+      this.lastconfirmdate = formatISO(new Date(this.date), { representation: 'date' })
+      this.$emit('changedate', this.date)
+    },
+    SelectOptionOne(option) {
+      this.$emit('selectone', option)
+    },
+    SelectOptionTwo(option) {
+      this.$emit('selecttwo', option)
+    },
+    
   },
 }
 </script>
@@ -60,31 +71,41 @@ export default {
         </div>
         <hr />
         <div class="modal-popup__main">
-          <DatePicker v-model="date"/>
+          Выберите дату:
+          <DatePicker v-model="date" />
+          <button @click="GetDateFromDatepicker">Подтвердить дату</button>
+          <div v-if="this.lastconfirmdate != ''"> Последняя подтверждённая дата: {{ lastconfirmdate }}</div>
+          <br /><br />
+          Выберите команды (одну и ту же выбирать нельзя):
           <div class="teams">
-          <div class="match">
-            <select name="team_one" id="team_one" v-model="team_one">
-              <option disabled value="">Команда 1</option>
-              <option v-for="team in arrayTeams" :value=team.id>{{ team.tname }}</option>
-            </select>
+            <div class="match">
+              <select name="team_one" id="team_one" v-model="team_one">
+                <option disabled value="">Команда 1</option>
+                <option v-for="team in arrayTeams" :value=team.id @click="SelectOptionOne(team.id)">{{ team.tname }}</option>
+              </select>
+            </div>
+            <div class="match">
+              <select name="team_one" id="team_one" v-model="team_two">
+                <option disabled value="">Команда 2</option>
+                <option v-for="team in arrayTeams" :value=team.id @click="SelectOptionTwo(team.id)">{{ team.tname }}</option>
+              </select>
+            </div>
           </div>
-          <div class="match">
-            <select name="team_one" id="team_one" v-model="team_two">
-              <option disabled value="">Команда 2</option>
-              <option v-for="team in arrayTeams" :value=team.id>{{ team.tname }}</option>
-            </select>
-          </div>
-        </div>
-          
         </div>
 
         <div class="modal-popup__footer">
           <slot name="actions" :cancel="closeModal" :confirm="confirmModal">
             <button style="margin: 10px;" class="modal-popup__button" @click="closeModal">Отмена</button>
-            <button style="margin: 10px;" class="modal-popup__button" @click="AddData" v-if="action === 'add' && ((team_one != team_two) && (team_one != '') && (team_two != '') && (date != ''))">Добавить</button>
-            <button style="margin: 10px;" class="modal-popup__button" v-if="action === 'add' && ((team_one === team_two) || (team_one === '') || (team_two === '') || (date === ''))" disabled>Добавить</button>
-            <button style="margin: 10px;" class="modal-popup__button" @click="updateData" v-if="action === 'update' && ((team_one != team_two) && (team_one != '') && (team_two != '') && (date != ''))">Подтвердить</button>
-            <button style="margin: 10px;" class="modal-popup__button" v-if="action === 'update' && ((team_one === team_two) || (team_one === '') || (team_two === '') || (date === ''))" disabled>Подтвердить</button>
+            <button style="margin: 10px;" class="modal-popup__button" @click="AddData"
+              v-if="action === 'add' && ((team_one != team_two) && (team_one != '') && (team_two != '') && (date != ''))">Добавить</button>
+            <button style="margin: 10px;" class="modal-popup__button"
+              v-if="action === 'add' && ((team_one === team_two) || (team_one === '') || (team_two === '') || (date === ''))"
+              disabled>Добавить</button>
+            <button style="margin: 10px;" class="modal-popup__button" @click="updateData"
+              v-if="action === 'update' && ((team_one != team_two) && (team_one != '') && (team_two != '') && (date != ''))">Подтвердить</button>
+            <button style="margin: 10px;" class="modal-popup__button"
+              v-if="action === 'update' && ((team_one === team_two) || (team_one === '') || (team_two === '') || (date === ''))"
+              disabled>Подтвердить</button>
           </slot>
         </div>
       </div>
@@ -115,29 +136,35 @@ export default {
   padding: 20px;
   text-align: center;
 }
+
 .modal-popup__wrapper {
   display: flex;
   flex-direction: column;
 }
+
 .modal-popup__main {
   max-width: 100%;
 }
+
 hr {
   width: 100%;
 }
+
 input {
   margin: 10px 0;
   width: 465px;
   padding: 10px 15px;
 }
-.match { 
+
+.match {
   margin: 10px;
   width: 50%;
 }
+
 .match select {
   width: 100%;
 }
+
 .teams {
   display: flex;
-}
-</style>
+}</style>

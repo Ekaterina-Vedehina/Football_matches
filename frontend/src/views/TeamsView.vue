@@ -1,6 +1,6 @@
 <template>
   <div class="teams">
-    <h1>TEAMS</h1>
+    <h1>Футбольные команды</h1>
     <button style="margin: 10px;" @click="fetchTeams">Получить список всех команд</button>
     <button style="margin: 10px;" @click="createNewTeam">Добавить команду</button>
     <!-- {{ arrayTeams }} -->
@@ -104,10 +104,16 @@ export default {
   padding: 20px;
   display: flex;
   justify-content: space-between;
-
+  align-items: center;
 }
 
 .team:hover {
   background-color: #cafce6;
+}
+button {
+  border-radius: 5px;
+  border-width: 1px;
+  padding: 5px 10px;
+  box-shadow: none;
 }
 </style>

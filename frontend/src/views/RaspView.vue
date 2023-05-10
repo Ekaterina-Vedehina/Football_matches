@@ -4,31 +4,48 @@
     <button style="margin: 10px;" @click="createNewMatch">Добавить матч в расписание</button>
     <div class="" v-if="arrayMatсhes.length > 0" v-for="match in arrayMatсhes">
       <div class="match">
-        {{ match.match_date }}
-        {{ match.first_team }}
-        {{ match.second_team }}
+        <!--{{ match.match_date }}-->
+        {{ GetCorrectDate(match.match_date) }}
+        <!--{{ match.first_team }}
+        {{ match.second_team }}-->
+        <div class="row-name-teams">
+          {{ GetNameTeams(match.first_team) }} :
+          {{ GetNameTeams(match.second_team) }}
+        </div>
         <div class="">
-          <button @click="Update(match.id)">Редактировать матч</button>
-          <button style="margin-left: 10px; background-color:#42b983; color: #ffffff; border: none;" @click="fetchMathes">Провести матч</button>
-          <button style="margin-left: 10px;" @click="Delete(match.id)">Удалить из расписания</button>
+          <!--<button @click="Update(match.id)">Редактировать матч</button> -->
+          <router-link :to="`/match/${match.id}`" >
+            <button 
+              class="btn__play"
+              @click="fetchMathes">
+              Провести матч
+            </button>
+          </router-link>
+          <button style="margin-left: 10px;" @click="deleteOneMatchFromRasp(match.id)">Удалить из расписания</button>
         </div>
       </div>
     </div>
+    <div v-else> В расписании нет ни одного матча. Вы можете создать новый.</div>
   </div>
   <ModalRasp 
   :isShow="showModal" 
   @cancel="this.showModal = false" 
-  @confirm="SendTeam"
-  @update="SendUpdateTeam(this.team.id)"
+  @confirm="SendMatch"
+  @update="SendUpdateMatch(this.arrayMatсhes.id)"
   :headerModal="ActionModal"
   :action="action"
-  v-model="team.tname" 
-  :arrayTeams="arrayTeams" />
+  :arrayTeams="arrayTeams" 
+  @selectone="optionSelectOne"
+  @selecttwo="optionSelectTwo"
+  @changedate="optionDateSelect"
+  />
+
 </template>
 
 <script>
 import ModalRasp from "../components/ModalRasp.vue";
 import * as api from '../api'
+import { formatISO } from 'date-fns'
 export default {
   components: {
     ModalRasp
@@ -37,8 +54,13 @@ export default {
     return {
       arrayMatсhes: [],
       arrayTeams: [],
-      team: {
-        id: null,
+      date_match: '',
+      team_one: {
+        id: '',
+        tname: ''
+      },
+      team_two: {
+        id: '',
         tname: ''
       },
       showModal: false,
@@ -47,6 +69,18 @@ export default {
     }
   },
   methods: {
+    optionSelectOne(option) {
+      this.team_one.id = option;
+      console.log(this.team_one.id)
+    },
+    optionSelectTwo(option) {
+      this.team_two.id = option;
+      console.log(this.team_two.id)
+    },
+    optionDateSelect (option) {
+      this.date_match = option;
+      console.log(this.date_match)
+    },
     async fetchTeams() {
       const response = await api.GetAllTeams()
       const data = await response.json()
@@ -68,41 +102,37 @@ export default {
       //this.arrayMatсhes = this.arrayMatсhes.push(data)
     },
     //отправить запрос на сервер на добавление новой команды
-    async SendTeam() {
-      if (this.team.tname != '') {
-        const response = await api.CreateTeam(this.team.tname)
+    async SendMatch() {
+      console.log(this.date_match, this.team_one.tname, this.team_two.tname)
+      if (this.date_match  != '' && this.team_one.id  != '' && this.team_two.id != '') {
+        const response = await api.createMatch(this.date_match, this.team_one.id, this.team_two.id)
         const data = await response.json()
         console.log(data)
         this.showModal = false
       }
       this.fetchMathes()
     },
-    //редактирование команды
-    async Update(id) {
-      this.ActionModal = 'Редактировать матч'
-      this.action = 'update'
-      this.showModal = true
-      this.team.id = id 
+    async deleteOneMatchFromRasp(id) {
+      const response = await api.DeleteMatchFromRasp(id)
+      console.log(response)
+      this.fetchMathes()
     },
-    async SendUpdateTeam(id_team) {
-      if (this.team.tname != '') {
-        const response = await api.UpdateTeam(id_team, this.team.tname)
-        const data = await response.json()
-        //console.log(data) //показать отредактированную запись
-        this.showModal = false
-        this.team.id = null
-        this.team.tname = ''
-        this.fetchMathes()
-      }
-    }
+    GetNameTeams(number) {
+      let tiname = this.arrayTeams.find(element => element.id === number).tname
+      return tiname
+    },
+    GetCorrectDate(date) {
+      let correctdate = formatISO(new Date(date), { representation: 'date' })
+      return correctdate
+    },
   },
   created() {
-    this.fetchMathes()
     this.fetchTeams()
+    this.fetchMathes()
   }
 }
-
 </script>
+
 <style scoped>
 .matches {
   text-align: center;
@@ -115,10 +145,31 @@ export default {
   padding: 20px;
   display: flex;
   justify-content: space-between;
-
+  align-items: center;
 }
 
 .match:hover {
   background-color: #cafce6;
+}
+
+button {
+  border-radius: 5px;
+  border-width: 1px;
+  padding: 5px 10px;
+  box-shadow: none;
+}
+.btn__play {
+  margin-left: 10px; 
+  background-color:#42b983; 
+  color: #ffffff; 
+  border: 1px solid #42b983;
+}
+.btn__play:hover{
+  background-color:#349468;
+  border-color: #276f4e;
+}
+.btn__play:active{
+  background-color:#276f4e;
+  border-color: #1a4a34;
 }
 </style>
