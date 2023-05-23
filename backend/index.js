@@ -22,9 +22,4 @@ app.get ('/', (req, res) => {
   res.send('Сервер работает. Ура!')
 })
 
-
-
-// по идее снимает ограничения по подключению
-
-
 app.listen(PORT, () => console.log(`Server working: http://localhost:${PORT}` ))

@@ -1,36 +1,49 @@
 <template>
     <div class="wrapper">
         <!--<h1>Футбольные команды</h1>-->
-        <div class="teams">
-            <div style="width: 48%; text-align: right;">
-            {{ GetNameTeams(newMatch.first_team) }}
+        <div v-if="!endgame">
+            <div class="teams">
+                <div style="width: 48%; text-align: right;">
+                    {{ GetNameTeams(newMatch.first_team) }}
+                </div>
+                <div style="width: 4%;">
+                    :
+                </div>
+                <div style="width: 48%; text-align: left;">
+                    {{ GetNameTeams(newMatch.second_team) }}
+                </div>
             </div>
-            <div style="width: 4%;">
-            :
+            <div class="tablo">
+                <button style="font-size: 34px;" @click="res_one += 1">Гол!</button>
+                <div class="group-input">
+                    <div class="input"> {{ res_one }}</div>
+                    :
+                    <div class="input"> {{ res_two }}</div>
+                </div>
+                <button style="font-size: 34px;" @click="res_two += 1">Гол!</button>
             </div>
-            <div style="width: 48%; text-align: left;">
-            {{ GetNameTeams(newMatch.second_team) }}
+            <div v-if="penalty === true" style="margin-bottom: 20px;" class="penalty">
+                Вебирите победителя по серии пенальти:
+                <select name="winner-on-penalties" id="winner-on-penalties" v-model="winner">
+                    <option disabled dafault value="Победитель по серии пенальти">Победитель по серии пенальти</option>
+                    <option :value=newMatch.first_team>{{ GetNameTeams(newMatch.first_team) }}</option>
+                    <option :value=newMatch.second_team>{{ GetNameTeams(newMatch.second_team) }}</option>
+                </select>
             </div>
+            <button v-if="!penalty" @click="Summarize">Подвести итоги</button>
+            <button v-if="penalty && winner === null" disabled>Завершить матч</button>
+            <button v-if="penalty && winner != null" @click="EndMatch">Завершить матч</button>
         </div>
-        <div class="tablo">
-            <button style="font-size: 34px;" @click="res_one += 1">Гол!</button>
-            <div class="group-input"> 
-                <div class="input"> {{ res_one }}</div>
-                :
-                <div class="input"> {{ res_two }}</div>
-            </div>
-            <button style="font-size: 34px;" @click="res_two += 1">Гол!</button>
+        <div v-else>
+            <div class="teams">Победитель:</div>
+            <div class="group-input" style="width:100%"><strong>{{ GetNameTeams(winner) }}</strong></div>
+            <router-link to="/archive" >
+            <button 
+              class="btn__play">
+              Перейти в Архив игр &#8594;
+            </button>
+          </router-link>
         </div>
-        <div v-if="penalty === true" style="margin-bottom: 20px;" class="penalty">
-            <select name="winner-on-penalties" id="winner-on-penalties" v-model="winner">
-                <option disabled value="Победитель по серии пенальти">Победитель по серии пенальти</option>
-                <option :value=newMatch.first_team>{{ GetNameTeams(newMatch.first_team) }}</option>
-                <option :value=newMatch.second_team>{{ GetNameTeams(newMatch.second_team) }}</option>
-            </select>
-        </div>
-        <button v-if="!penalty" @click="Summarize">Подвести итоги</button>
-        <button v-if="penalty && winner === null" disabled>Завершить матч</button>
-        <button v-if="penalty && winner != null" @click="EndMatch">Завершить матч</button>
     </div>
 </template>
 
@@ -50,6 +63,7 @@ export default {
             res_two: 0,
             penalty: false,
             winner: null,
+            endgame: false,
         }
     },
     methods: {
@@ -66,12 +80,12 @@ export default {
         },
         async Archiv() {
             const response = await api.Archiving(
-                formatISO(new Date(this.newMatch.match_date), { representation: 'date' }), 
-                this.newMatch.first_team, 
-                this.res_one, 
-                this.newMatch.second_team, 
-                this.res_two, 
-                this.penalty, 
+                formatISO(new Date(this.newMatch.match_date), { representation: 'date' }),
+                this.newMatch.first_team,
+                this.res_one,
+                this.newMatch.second_team,
+                this.res_two,
+                this.penalty,
                 this.winner
             )
             const data = await response.json()
@@ -88,45 +102,43 @@ export default {
             return tiname
         },
         Summarize() {
-            if (this.res_one != this.res_two ) {
-                if (this.res_one > this.res_two ) {
+            if (this.res_one != this.res_two) {
+                if (this.res_one > this.res_two) {
                     this.winner = this.newMatch.first_team
                 }
-                else
-                {
+                else {
                     this.winner = this.newMatch.second_team
                 }
                 console.log(
-                    formatISO(new Date(this.newMatch.match_date), { representation: 'date' }), 
-                    this.newMatch.first_team, 
-                    this.res_one, 
-                    this.newMatch.second_team, 
-                    this.res_two, 
-                    this.penalty, 
+                    formatISO(new Date(this.newMatch.match_date), { representation: 'date' }),
+                    this.newMatch.first_team,
+                    this.res_one,
+                    this.newMatch.second_team,
+                    this.res_two,
+                    this.penalty,
                     this.winner)
                 this.Archiv()
                 this.deleteOneMatchFromRasp(parseInt(this.$route.params.matchid))
+                this.endgame = true
             }
             else {
                 this.penalty = true
-                if (this.winner != '' ) {
+                if (this.winner != '') {
                     console.log(
-                    formatISO(new Date(this.newMatch.match_date), { representation: 'date' }), 
-                    this.newMatch.first_team, 
-                    this.res_one, 
-                    this.newMatch.second_team, 
-                    this.res_two, 
-                    this.penalty, 
-                    this.winner)
-                    //this.Archiv()
-
+                        formatISO(new Date(this.newMatch.match_date), { representation: 'date' }),
+                        this.newMatch.first_team,
+                        this.res_one,
+                        this.newMatch.second_team,
+                        this.res_two,
+                        this.penalty,
+                        this.winner)
                 }
-                //this.deleteOneMatchFromRasp(parseInt(this.$route.params.matchid))
             }
         },
         EndMatch() {
             this.Archiv()
             this.deleteOneMatchFromRasp(parseInt(this.$route.params.matchid))
+            this.endgame = true
         }
     },
     created() {
@@ -151,6 +163,7 @@ export default {
     display: flex;
     align-items: center;
 }
+
 .tablo {
     width: 100%;
     display: flex;
@@ -158,6 +171,7 @@ export default {
     align-items: center;
     margin-bottom: 20px;
 }
+
 .group-input {
     width: 250px;
     height: 100px;
@@ -171,13 +185,30 @@ export default {
     align-items: center;
     font-size: 76px;
 }
+
 .input {
     font-size: 76px;
 }
+
 
 button {
     border-radius: 5px;
     border-width: 1px;
     padding: 5px 10px;
     box-shadow: none;
-}</style>
+}
+.btn__play {
+  margin-left: 10px; 
+  background-color:#42b983; 
+  color: #ffffff; 
+  border: 1px solid #42b983;
+}
+.btn__play:hover{
+  background-color:#349468;
+  border-color: #276f4e;
+}
+.btn__play:active{
+  background-color:#276f4e;
+  border-color: #1a4a34;
+}
+</style>

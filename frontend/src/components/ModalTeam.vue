@@ -88,7 +88,6 @@ export default {
   text-align: center;
 }
 
-
 .modal-popup__wrapper {
   display: flex;
   flex-direction: column;
