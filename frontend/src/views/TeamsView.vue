@@ -1,7 +1,7 @@
 <template>
   <div class="teams">
     <h1>Футбольные команды</h1>
-    <button style="margin: 10px;" @click="fetchTeams">Получить список всех команд</button>
+    <!--<button style="margin: 10px;" @click="fetchTeams">Получить список всех команд</button>-->
     <button style="margin: 10px;" @click="createNewTeam">Добавить команду</button>
     <!-- {{ arrayTeams }} -->
     <div class="" v-if="arrayTeams.length > 0" v-for="team in arrayTeams">
